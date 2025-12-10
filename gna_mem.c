@@ -16,6 +16,7 @@
 #include <linux/scatterlist.h>
 #include <linux/slab.h>
 #include <linux/string.h>
+#include <linux/version.h>
 #include <linux/wait.h>
 #include <linux/workqueue.h>
 
@@ -206,7 +207,15 @@ bool gna_gem_object_put_pages_sgt(struct gna_gem_object *gnagemo)
 	shmem->sgt = NULL;
 	dma_resv_unlock(shmem->base.resv);
 
+	// In newer kernel versions, release the pages directly instead of calling put_pages
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,17,0)
+	if (shmem->pages) {
+		drm_gem_put_pages(&shmem->base, shmem->pages, shmem->base.import_attach ? false : true, true);
+		shmem->pages = NULL;
+	}
+#else
 	drm_gem_shmem_put_pages(shmem);
+#endif
 
 	return true;
 }

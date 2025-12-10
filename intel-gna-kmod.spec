@@ -133,7 +133,8 @@ install -m 0644 include/uapi/drm/gna_drm.h %{buildroot}/%{_includedir}/drm/gna_d
 
 for kernel_version in %{?kernel_versions}; do
     mkdir -p ${RPM_BUILD_ROOT}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}
-    make -C "${kernel_version##*___}" M=${PWD}/_kmod_build_${kernel_version%%___*} INSTALL_MOD_PATH=${RPM_BUILD_ROOT} INSTALL_MOD_DIR=%{kmodinstdir_postfix} modules_install
+    # FIX: Added '/../' to the M= path below so it finds the sibling build directory
+    make -C "${kernel_version##*___}" M=${PWD}/../_kmod_build_${kernel_version%%___*} INSTALL_MOD_PATH=${RPM_BUILD_ROOT} INSTALL_MOD_DIR=%{kmodinstdir_postfix} modules_install
     install -m 0644 ${PWD}/../_kmod_build_${kernel_version%%___*}/gna.ko ${RPM_BUILD_ROOT}%{kmodinstdir_prefix}/${kernel_version%%___*}/%{kmodinstdir_postfix}/gna.ko
     # DEPMOD creates a bunch of files for us, we'd rather not bother with them
     rm ${RPM_BUILD_ROOT}%{kmodinstdir_prefix}/${kernel_version%%___*}/modules.*
